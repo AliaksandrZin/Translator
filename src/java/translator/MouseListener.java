@@ -9,8 +9,8 @@ import translator.api.JsonRetrievalTask;
 import translator.model.Word;
 import translator.util.Assert;
 import translator.util.Languages;
+import translator.util.PopUp;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -32,45 +32,22 @@ public class MouseListener implements NativeMouseInputListener {
     private String to;
     private int X;
     private int Y;
-    private JFrame frame = new JFrame();
+    private int width;
+    private int height;
 
     @Override
     public void nativeMouseClicked(NativeMouseEvent nativeMouseEvent) {
-        if (nativeMouseEvent.getClickCount() == 1) {
-            frame.dispose();
-        }
+        PopUp.dispose();
         if (nativeMouseEvent.getClickCount() == 2) {
-            getSelected();
-            try {
-                Thread.sleep(100);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            try {
-                String text;
-                if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
-                    text = (String) clipboard.getData(DataFlavor.stringFlavor);
-                    translate(text);
-                }
-                clipboard.setContents(new Transferable() {
-                    @Override
-                    public DataFlavor[] getTransferDataFlavors() {
-                        return new DataFlavor[0];
-                    }
-                    @Override
-                    public boolean isDataFlavorSupported(DataFlavor flavor) {
-                        return false;
-                    }
-                    @Override
-                    public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
-                        throw new UnsupportedFlavorException(flavor);
-                    }
-                }, null);
-            } catch (UnsupportedFlavorException | IOException e) {
-                e.printStackTrace();
-            }
             X = nativeMouseEvent.getX();
             Y = nativeMouseEvent.getY();
+            width = 100;
+            height = 30;
+            processText();
+        }
+        if (nativeMouseEvent.getButton() == NativeMouseEvent.BUTTON2) {
+            calculatePopUpDimensions();
+            processText();
         }
     }
 
@@ -87,8 +64,16 @@ public class MouseListener implements NativeMouseInputListener {
     public void nativeMouseDragged(NativeMouseEvent nativeMouseEvent) {
     }
 
+    public void setFrom(String from) {
+        this.from = from;
+    }
+
+    public void setTo(String to) {
+        this.to = to;
+    }
+
     void registerHook(Main mainApp) {
-        logger.setLevel(Level.WARNING);
+        logger.setLevel(Level.WARNING); // disable excessive logging in jnativehook library
         log.log(Level.INFO, "registering new mouse tracker");
         try {
             GlobalScreen.registerNativeHook();
@@ -106,6 +91,38 @@ public class MouseListener implements NativeMouseInputListener {
         }
     }
 
+    private void processText() {
+        getSelected();
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        try {
+            String text;
+            if (clipboard.isDataFlavorAvailable(DataFlavor.stringFlavor)) {
+                text = (String) clipboard.getData(DataFlavor.stringFlavor);
+                translate(text);
+            }
+            clipboard.setContents(new Transferable() {
+                @Override
+                public DataFlavor[] getTransferDataFlavors() {
+                    return new DataFlavor[0];
+                }
+                @Override
+                public boolean isDataFlavorSupported(DataFlavor flavor) {
+                    return false;
+                }
+                @Override
+                public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+                    throw new UnsupportedFlavorException(flavor);
+                }
+            }, null);
+        } catch (UnsupportedFlavorException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void getSelected() {
         log.log(Level.INFO, "copying selected words to System clipboard");
         robot.keyPress(KeyEvent.VK_CONTROL);
@@ -119,33 +136,25 @@ public class MouseListener implements NativeMouseInputListener {
         try {
             Assert.notNull(text, "Text format is not valid");
         } catch (IllegalArgumentException e) {
-            showPopUp(X, Y, e.getMessage(), 200, 50);
+            PopUp.show(X, Y, e.getMessage(), 200, 50);
         }
         String lang = Languages.languages.get(from) + "-" + Languages.languages.get(to);
         JsonRetrievalTask translatedTextTask = new JsonRetrievalTask(lang, text);
         translatedTextTask.setOnSucceeded(event -> {
             String s = (String) event.getSource().getValue();
             mainApp.getWordsTranslated().add(new Word(text, s));
-            showPopUp(X, Y, s, 100, 25);
+            PopUp.show(X, Y, s, width, height);
         });
         Platform.runLater(translatedTextTask);
     }
 
-    private void showPopUp(int x, int y, String text, int width, int height) {
-        frame = new JFrame();
-        JLabel label = new JLabel(text);
-        frame.setSize(width, height);
-        frame.setUndecorated(true);
-        frame.add(label);
-        frame.setLocation(x, y-40);
-        frame.setVisible(true);
-    }
+    private void calculatePopUpDimensions() {
+        // TODO
 
-    public void setFrom(String from) {
-        this.from = from;
-    }
-
-    public void setTo(String to) {
-        this.to = to;
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        width = 500;
+        height = 800;
+        X = screenSize.width - width;
+        Y = screenSize.height - height;
     }
 }

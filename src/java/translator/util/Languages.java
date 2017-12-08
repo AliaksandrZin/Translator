@@ -36,6 +36,7 @@ public class Languages {
                 properties.load(inputStream);
             } catch (IOException e) {
                 log.log(Level.SEVERE, e.getMessage());
+                System.exit(1);
             }
         }
         if (engine.equals("Yandex")) {
@@ -46,7 +47,7 @@ public class Languages {
             base_url = properties.getProperty("BASE_URL_GOOGLE");
         }
 
-        //reading json list of languages from translate api, converting to Map<Language, String>
+        // TODO reading json list of languages from translate api, converting to Map<String, String>
 
         languages.putIfAbsent("English", "en");
         languages.putIfAbsent("Russian", "ru");
