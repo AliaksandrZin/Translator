@@ -3,16 +3,16 @@ package translator.model;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class Word {
+public class Text {
 
     private StringProperty original;
     private StringProperty translated;
 
-    public Word() {
+    public Text() {
         this(null, null);
     }
 
-    public Word(String from, String to) {
+    public Text(String from, String to) {
         this.original = new SimpleStringProperty(from);
         this.translated = new SimpleStringProperty(to);
     }

@@ -5,17 +5,17 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import translator.Main;
-import translator.model.Word;
+import translator.model.Text;
 import translator.util.Languages;
 
 public class ViewController {
 
     @FXML
-    private TableView<Word> wordTable;
+    private TableView<Text> wordTable;
     @FXML
-    private TableColumn<Word, String> original;
+    private TableColumn<Text, String> original;
     @FXML
-    private TableColumn<Word, String> translated;
+    private TableColumn<Text, String> translated;
     @FXML
     private ComboBox<String> originalLang;
     @FXML
@@ -36,13 +36,16 @@ public class ViewController {
 
     public void setMainApp(Main mainApp) {
         this.mainApp = mainApp;
-
         wordTable.setItems(mainApp.getWordsTranslated());
-        api.setItems(mainApp.getEngines());
-        api.setValue("Yandex");
-        Languages.initialize(api.getValue(), mainApp);
+        api.setItems(mainApp.getApis());
+        api.getSelectionModel().selectFirst();
         originalLang.setItems(mainApp.getLangs());
         translatedLang.setItems(mainApp.getLangs());
+    }
+
+    public void setDefaultLangs() {
+        originalLang.getSelectionModel().select("English");
+        translatedLang.getSelectionModel().select("Russian");
     }
 
     @FXML
@@ -59,8 +62,8 @@ public class ViewController {
     }
     @FXML
     private void setTranslationEngine() {
-        String engineValue = api.getValue();
-        api.setValue(engineValue);
-        Languages.initialize(engineValue);
+        String apiValue = api.getValue();
+        api.setValue(apiValue);
+        Languages.initialize(apiValue);
     }
 }

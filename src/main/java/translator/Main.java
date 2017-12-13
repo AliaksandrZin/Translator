@@ -8,7 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
-import translator.model.Word;
+import translator.model.Text;
+import translator.util.Languages;
 import translator.view.ViewController;
 
 import java.io.IOException;
@@ -18,15 +19,14 @@ public class Main extends Application {
     private Stage primaryStage;
     private BorderPane rootLayout;
 
-    private ObservableList<Word> wordsTranslated = FXCollections.observableArrayList();
+    private ObservableList<Text> wordsTranslated = FXCollections.observableArrayList();
     private ObservableList<String> langs = FXCollections.observableArrayList();
-    private ObservableList<String> engines = FXCollections.observableArrayList();
+    private ObservableList<String> apis = FXCollections.observableArrayList();
     private MouseListener mouseListener = new MouseListener();
-
+    private ViewController controller;
 
     public Main() {
-        engines.add("Yandex");
-        engines.add("Google");
+        apis.addAll("Yandex"/*, "Google"*/);
     }
 
     @Override
@@ -37,6 +37,7 @@ public class Main extends Application {
         initRootLayout();
         initTranslatorLayout();
         initMouseTracker();
+        initLanguages();
     }
 
     private void initRootLayout() {
@@ -57,6 +58,7 @@ public class Main extends Application {
             rootLayout.setCenter(translator);
             ViewController controller = loader.getController();
             controller.setMainApp(this);
+            this.controller = controller;
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -66,11 +68,16 @@ public class Main extends Application {
         mouseListener.registerHook(this);
     }
 
+    private void initLanguages() {
+        Languages.setProperties(this);
+        Languages.initialize("Yandex");
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
 
-    public ObservableList<Word> getWordsTranslated() {
+    public ObservableList<Text> getWordsTranslated() {
         return wordsTranslated;
     }
 
@@ -78,15 +85,15 @@ public class Main extends Application {
         return langs;
     }
 
-    public void setLangs(ObservableList<String> langs) {
-        this.langs = langs;
-    }
-
-    public ObservableList<String> getEngines() {
-        return engines;
+    public ObservableList<String> getApis() {
+        return apis;
     }
 
     public MouseListener getMouseListener() {
         return mouseListener;
+    }
+
+    public ViewController getController() {
+        return controller;
     }
 }

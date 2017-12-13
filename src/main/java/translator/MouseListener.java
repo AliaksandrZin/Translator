@@ -6,11 +6,12 @@ import org.jnativehook.NativeHookException;
 import org.jnativehook.mouse.NativeMouseEvent;
 import org.jnativehook.mouse.NativeMouseInputListener;
 import translator.api.JsonRetrievalTask;
-import translator.model.Word;
+import translator.model.Text;
 import translator.util.Assert;
 import translator.util.Languages;
 import translator.util.PopUp;
 
+import javax.json.JsonObject;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
@@ -30,38 +31,48 @@ public class MouseListener implements NativeMouseInputListener {
     private Robot robot;
     private String from;
     private String to;
+    private long dragStart;
     private int X;
     private int Y;
-    private int width;
-    private int height;
+    private Dimension[] dimensions = new Dimension[2];
+    private boolean dragged;
 
     @Override
     public void nativeMouseClicked(NativeMouseEvent nativeMouseEvent) {
         PopUp.dispose();
         if (nativeMouseEvent.getClickCount() == 2) {
+            PopUp.dispose();
             X = nativeMouseEvent.getX();
             Y = nativeMouseEvent.getY();
-            width = 100;
-            height = 30;
-            processText();
-        }
-        if (nativeMouseEvent.getButton() == NativeMouseEvent.BUTTON2) {
-            calculatePopUpDimensions();
+            dimensions = calculatePopUpDimensions(true);
             processText();
         }
     }
 
     @Override
     public void nativeMousePressed(NativeMouseEvent nativeMouseEvent) {
+        PopUp.dispose();
     }
+
     @Override
     public void nativeMouseReleased(NativeMouseEvent nativeMouseEvent) {
+        PopUp.dispose();
+        if (dragged & (nativeMouseEvent.getWhen() - dragStart) > 200) {
+            dimensions = calculatePopUpDimensions(false);
+            processText();
+        }
+        dragStart = 0;
+        dragged = false;
     }
+
     @Override
     public void nativeMouseMoved(NativeMouseEvent nativeMouseEvent) {
     }
+
     @Override
     public void nativeMouseDragged(NativeMouseEvent nativeMouseEvent) {
+        if (dragStart == 0) dragStart = nativeMouseEvent.getWhen();
+        dragged = true;
     }
 
     public void setFrom(String from) {
@@ -78,15 +89,16 @@ public class MouseListener implements NativeMouseInputListener {
         try {
             GlobalScreen.registerNativeHook();
         } catch (NativeHookException e) {
-            log.log(Level.SEVERE, "Hook is not registered. Problem occured: " + e.getMessage());
+            log.log(Level.SEVERE, "Hook is not registered. Problem occured: {0}", e.getMessage());
             System.exit(1);
         }
         GlobalScreen.addNativeMouseListener(this);
+        GlobalScreen.addNativeMouseMotionListener(this);
         this.mainApp = mainApp;
         try {
             robot = new Robot();
         } catch (AWTException e) {
-            log.log(Level.SEVERE,"Robot was not created. Problem occured: " + e.getMessage());
+            log.log(Level.SEVERE,"Robot was not created. Problem occured: {0}", e.getMessage());
             System.exit(1);
         }
     }
@@ -94,7 +106,7 @@ public class MouseListener implements NativeMouseInputListener {
     private void processText() {
         getSelected();
         try {
-            Thread.sleep(100);
+            Thread.sleep(150);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -136,25 +148,29 @@ public class MouseListener implements NativeMouseInputListener {
         try {
             Assert.notNull(text, "Text format is not valid");
         } catch (IllegalArgumentException e) {
-            PopUp.show(X, Y, e.getMessage(), 200, 50);
+            PopUp.show(X, Y, e.getMessage(), calculatePopUpDimensions(false));
         }
         String lang = Languages.languages.get(from) + "-" + Languages.languages.get(to);
         JsonRetrievalTask translatedTextTask = new JsonRetrievalTask(lang, text);
         translatedTextTask.setOnSucceeded(event -> {
-            String s = (String) event.getSource().getValue();
-            mainApp.getWordsTranslated().add(new Word(text, s));
-            PopUp.show(X, Y, s, width, height);
+            String s = ((JsonObject) event.getSource().getValue()).getJsonArray("text").get(0).toString();
+            s = s.substring(1, s.length()-1).replaceAll("\\\\n", " ");
+            System.out.println(s);
+            mainApp.getWordsTranslated().add(new Text(text, s));
+            PopUp.show(X, Y, s, dimensions);
         });
         Platform.runLater(translatedTextTask);
     }
 
-    private void calculatePopUpDimensions() {
-        // TODO
-
+    private Dimension[] calculatePopUpDimensions(boolean leftClick) {
+        if (leftClick) {
+            return new Dimension[]{new Dimension(100, 30), new Dimension(100, 30)};
+        }
         Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-        width = 500;
-        height = 800;
-        X = screenSize.width - width;
-        Y = screenSize.height - height;
+        int width = screenSize.width/6;
+        Dimension[] dimension = {new Dimension(width, screenSize.height), new Dimension(width, 400)};
+        X = screenSize.width - width - 100;
+        Y = screenSize.height;
+        return dimension;
     }
 }
