@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/TopJavaDev/Translator.svg?branch=master)](https://travis-ci.org/TopJavaDev/Translator)
+
 Language Translator. 
 ===================
 #### This translator is small utility for translating foreign unknown words from any copyable texts.
