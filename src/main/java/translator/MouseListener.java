@@ -155,9 +155,9 @@ public class MouseListener implements NativeMouseInputListener {
         translatedTextTask.setOnSucceeded(event -> {
             String s = ((JsonObject) event.getSource().getValue()).getJsonArray("text").get(0).toString();
             s = s.substring(1, s.length()-1).replaceAll("\\\\n", " ");
-            System.out.println(s);
             mainApp.getWordsTranslated().add(new Text(text, s));
             PopUp.show(X, Y, s, dimensions);
+            event.getSource().cancel();
         });
         Platform.runLater(translatedTextTask);
     }
