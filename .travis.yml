@@ -1,0 +1,12 @@
+# https://docs.travis-ci.com/user/languages/java/
+language: java
+jdk: oraclejdk8
+
+# https://docs.travis-ci.com/user/customizing-the-build#Building-Specific-Branches
+branches:
+  only:
+  - master
+
+# https://docs.travis-ci.com/user/notifications#Configuring-email-notifications
+#notifications:
+#  email: false
