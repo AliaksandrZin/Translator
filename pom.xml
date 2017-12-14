@@ -4,8 +4,7 @@
 
     <groupId>by.alezin</groupId>
     <artifactId>translator</artifactId>
-    <version>0.0.1</version>
-    <packaging>jar</packaging>
+    <version>1.0</version>
 
     <name>main</name>
 
@@ -50,7 +49,8 @@
                 <configuration>
                     <vendor>${project.organization}</vendor>
                     <mainClass>${mainClass}</mainClass>
-                    <bundler>EXE</bundler>
+                    <nativeReleaseVersion>1</nativeReleaseVersion>
+                    <needShortcut>true</needShortcut>
                 </configuration>
                 <executions>
                     <execution>
@@ -138,7 +138,6 @@
             <artifactId>jnativehook</artifactId>
             <version>2.0.3</version>
         </dependency>
-
         <!-- JSON Api -->
         <dependency>
             <groupId>org.glassfish</groupId>
