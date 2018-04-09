@@ -7,7 +7,6 @@ import translator.Main;
 import translator.api.JsonRetrievalTask;
 
 import javax.json.JsonObject;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
@@ -62,7 +61,7 @@ public class Languages {
         Languages.mainApp = mainApp;
         InputStream inputStream;
         try {
-            inputStream = new FileInputStream("e:/translate/src/main/resources/translator/util/translator.properties");
+            inputStream = Languages.class.getResourceAsStream("/translator.properties");
             properties.load(inputStream);
         } catch (IOException e) {
             log.log(Level.SEVERE, e.getMessage());
