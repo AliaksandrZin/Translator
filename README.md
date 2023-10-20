@@ -19,5 +19,3 @@ Capture of user mouse interactions within operating systems was realized by mean
 - Possibility to change user's private key
 - Google translation API support
 - Additional pause button to stop the program from running
-
-- XLw9zQK9DJQHW3CdOGD5T3BlbkFJQG4TNVdALvMUTae8Bt0G
